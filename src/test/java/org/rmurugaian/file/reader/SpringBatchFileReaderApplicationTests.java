@@ -1,0 +1,13 @@
+package org.rmurugaian.file.reader;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+
+@Import(TestcontainersConfiguration.class)
+@SpringBootTest
+class SpringBatchFileReaderApplicationTests {
+
+  @Test
+  void contextLoads() {}
+}
