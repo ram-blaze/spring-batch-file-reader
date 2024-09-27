@@ -38,9 +38,7 @@ class LogFileReaderJobConfiguration {
   MultiResourcePartitioner multiResourcePartitioner(
       final FileReaderConfigProperties fileReaderConfigProperties) {
 
-    final MultiResourcePartitioner partitioner = new MultiResourcePartitioner();
-    fileReaderConfigProperties.getServerAndFilePaths().forEach(partitioner::addResource);
-    return partitioner;
+      return new MultiResourcePartitioner(fileReaderConfigProperties);
   }
 
   @Bean
@@ -52,12 +50,13 @@ class LogFileReaderJobConfiguration {
     regexLineTokenizer.setPattern(pattern);
 
     final FieldSetMapper<HGuidAndBzComb> hGuidAndBzCombFieldSetMapper =
-        fieldSet ->
+        fieldSet -> fieldSet.getFieldCount() == 4 ?
             new HGuidAndBzComb(
                 fieldSet.readRawString(0),
                 fieldSet.readRawString(1),
                 fieldSet.readRawString(2),
-                fieldSet.readRawString(3));
+                fieldSet.readRawString(3))
+            : null;
 
     final DefaultLineMapper<HGuidAndBzComb> lineMapper = new DefaultLineMapper<>();
     lineMapper.setLineTokenizer(regexLineTokenizer);
@@ -93,7 +92,7 @@ class LogFileReaderJobConfiguration {
       final PlatformTransactionManager transactionManager) {
 
     return new StepBuilder("logFileReadStep", jobRepository)
-        .<HGuidAndBzComb, HGuidAndBzCombEntity>chunk(1000, transactionManager)
+        .<HGuidAndBzComb, HGuidAndBzCombEntity>chunk(100, transactionManager)
         .reader(multiResourceItemReader)
         .processor(itemProcessor)
         .writer(itemWriter)

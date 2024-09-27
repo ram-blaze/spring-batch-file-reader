@@ -1,27 +1,23 @@
 package org.rmurugaian.file.reader.job;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.rmurugaian.file.reader.config.FileReaderConfigProperties;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
+@RequiredArgsConstructor
 public class MultiResourcePartitioner implements Partitioner {
 
   private static final String DEFAULT_KEY_NAME = "fileName";
   private static final String PARTITION_KEY = "partition";
 
-  private final List<ServerAndFilePath> serverAndFilePaths = new ArrayList<>();
-
-  public MultiResourcePartitioner addResource(ServerAndFilePath serverAndFilePath) {
-    Assert.notNull(serverAndFilePath, "serverAndFilePath must not be null");
-    serverAndFilePaths.add(serverAndFilePath);
-    return this;
-  }
+  private final FileReaderConfigProperties fileReaderConfigProperties;
 
   /**
    * Assign the filename of each of the injected resources to an {@link ExecutionContext}.
@@ -29,10 +25,10 @@ public class MultiResourcePartitioner implements Partitioner {
    * @see Partitioner#partition(int)
    */
   @Override
-  public Map<String, ExecutionContext> partition(int gridSize) {
+  public @NonNull Map<String, ExecutionContext> partition(int gridSize) {
     Map<String, ExecutionContext> map = new HashMap<>(gridSize);
     int i = 0;
-    for (ServerAndFilePath serverAndFilePath : serverAndFilePaths) {
+    for (ServerAndFilePath serverAndFilePath : fileReaderConfigProperties.getServerAndFilePaths()) {
       final ExecutionContext context = new ExecutionContext();
       final ClassPathResource resource = serverAndFilePath.getResource();
       Assert.state(resource.exists(), "Resource does not exist: " + resource);
